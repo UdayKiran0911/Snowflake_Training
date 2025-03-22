@@ -1,0 +1,172 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0" version="26.1.0">
+  <diagram name="Object Hierarchy" id="XqUKpfZPCl2UqPeOAZ8m">
+    <mxGraphModel dx="1682" dy="1023" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-15" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-1" target="YzH1Is9NxmRi8i4xoFUJ-7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-1" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Organization&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="-50" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-2" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;Object Hierarchy&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry y="-120" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-3" value="&lt;font style=&quot;font-size: 16px;&quot; color=&quot;#000000&quot;&gt;Snowflake&lt;/font&gt;" style="shape=mxgraph.signs.nature.snowflake;html=1;pointerEvents=1;fillColor=#1ba1e2;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="-50" y="-160" width="71.02" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-6" value="It is the highest level in Snowflake&#39;s hierarchy.&amp;nbsp;&lt;div&gt;It is comprised of one or more Snowflake accounts.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="185" y="-50" width="320" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-7" target="YzH1Is9NxmRi8i4xoFUJ-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-35" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;curved=0;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-7" target="YzH1Is9NxmRi8i4xoFUJ-33" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-36" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=12;startSize=8;endSize=8;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=0;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-7" target="YzH1Is9NxmRi8i4xoFUJ-34" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-7" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Account&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="20" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-9" value="An account represents a single Snowflake deployment&amp;nbsp;&lt;div&gt;and includes all data, users, roles, and settings&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="185" y="20" width="340" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-17" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-10" target="YzH1Is9NxmRi8i4xoFUJ-11" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-10" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Database&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="140" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-18" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-11" target="YzH1Is9NxmRi8i4xoFUJ-13" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-11" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Schema&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="210" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-20" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-12" target="YzH1Is9NxmRi8i4xoFUJ-14" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-30" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-12" target="YzH1Is9NxmRi8i4xoFUJ-26" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-31" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-12" target="YzH1Is9NxmRi8i4xoFUJ-27" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-12" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;View&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="490" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-19" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-13" target="YzH1Is9NxmRi8i4xoFUJ-12" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-43" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-13" target="YzH1Is9NxmRi8i4xoFUJ-37" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-44" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-13" target="YzH1Is9NxmRi8i4xoFUJ-38" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-45" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-13" target="YzH1Is9NxmRi8i4xoFUJ-41" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-13" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Table&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="280" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-60" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-14" target="YzH1Is9NxmRi8i4xoFUJ-46" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-61" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-14" target="YzH1Is9NxmRi8i4xoFUJ-47" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-62" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-14" target="YzH1Is9NxmRi8i4xoFUJ-50" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-63" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" parent="1" source="YzH1Is9NxmRi8i4xoFUJ-14" target="YzH1Is9NxmRi8i4xoFUJ-52" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-14" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Stage&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="677" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-21" value="A logical object within an account used to organize your data.&amp;nbsp;&lt;div&gt;A database can hold multiple schemas&amp;nbsp;&lt;/div&gt;&lt;div&gt;and is designed to group related data by subject, department, or function.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="395" y="130" width="440" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-22" value="An object within a database that holds tables, views, stages, file formats,&amp;nbsp;&lt;div&gt;sequences, stored procedures, user-defined functions, and other objects.&amp;nbsp;&lt;/div&gt;&lt;div&gt;Schemas help organize data within a database by grouping related objects.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="395" y="200" width="460" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-23" value="An object for storing structured (with rows and columns)&amp;nbsp;&lt;div&gt;and semi-structured data.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="395" y="280" width="350" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-24" value="A view allows the result of a query to be accessed as if it were a table" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="395" y="495" width="420" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-25" value="A storage location used for loading or unloading data files.&amp;nbsp;&lt;div&gt;Stages can be internal (within Snowflake) or&amp;nbsp;&lt;/div&gt;&lt;div&gt;external (such as on AWS S3, Azure Blob Storage, or Google Cloud Storage)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="395" y="667" width="470" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-26" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Materialized View&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="550" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-27" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Secure View&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="610" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-28" value="In materialized view data is pre-computed,&amp;nbsp;&lt;div&gt;querying a materialized view is faster&amp;nbsp;&lt;/div&gt;&lt;div&gt;than executing a query against the base table of the view.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="530" y="540" width="350" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-29" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;Secure Views are specifically designated for data privacy to limit access to sensitive data that should not be exposed to all users of the underlying table(s)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="605" width="330" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-32" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;Access Control&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-290" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-33" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;Users&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-150" y="140" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-34" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;Roles&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="50" y="140" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-37" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Permanent&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="350" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-38" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Transient&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="390" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-39" value="Long-term storage" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="530" y="355" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-40" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;Short-lived data&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="392.5" width="330" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-41" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Temporary&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="430" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-42" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;Temporary data tied to a single session&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="430" width="330" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-46" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Internal&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="760" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-47" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;External&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="802.5" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-48" value="Created by users and points to a cloud repository&amp;nbsp;&lt;div&gt;within the Snowflake&#39;s ecosystem.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="530" y="755" width="310" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-49" value="&lt;span style=&quot;font-size: 13px; text-wrap-mode: nowrap;&quot;&gt;Created by users and points to a cloud repository&amp;nbsp;&lt;/span&gt;&lt;div style=&quot;font-size: 13px; text-wrap-mode: nowrap;&quot;&gt;outside the Snowflake&#39;s ecosystem.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="800" width="330" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-50" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;User&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="842.5" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-51" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;Created automatically by Snowflake for each user.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="840" width="330" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-52" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Table&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="882.5" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="YzH1Is9NxmRi8i4xoFUJ-53" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;Created automatically by Snowflake for each table.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="880" width="330" height="35" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
