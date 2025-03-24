@@ -1,0 +1,871 @@
+
+-- Dynamic Tables in Snowflake
+
+-- Dynamic tables in Snowflake provide an automated way to transform data by regularly executing a specified query and updating the table with changes from base objects. This simplifies data engineering by eliminating the need for manual task scheduling and code management.
+
+
+
+--------------------------------------------------------------------
+-- CREATING DATABASE & SCHEMAS FOR DATA VAULT MODEL
+--------------------------------------------------------------------
+
+CREATE DATABASE DATA_VAULT COMMENT = 'Data Vault POC Database';
+
+CREATE SCHEMA "DATA_VAULT"."STG" WITH MANAGED ACCESS COMMENT = 'Raw & Staging Area';
+CREATE SCHEMA "DATA_VAULT"."RDV" COMMENT = 'Raw Data Vault Area';
+CREATE SCHEMA "DATA_VAULT"."BDV" COMMENT = 'Business Data Vault';
+CREATE SCHEMA "DATA_VAULT"."REPO" WITH MANAGED ACCESS COMMENT = 'Final Inforamtion Area';
+
+--------------------------------------------------------------------
+-- CREATING STAGING TABLES IN STAGING SCHEMA
+--------------------------------------------------------------------
+
+USE SCHEMA STG;
+
+CREATE OR REPLACE TABLE DATA_VAULT.STG.CUSTOMER_FEED_STG
+(
+  RAW_JSON                VARIANT
+, FILENAME                STRING   NOT NULL
+, FILE_ROW_SEQ            NUMBER   NOT NULL
+, LDTS                    STRING   NOT NULL
+, RSCR                    STRING   NOT NULL
+);
+
+CREATE OR REPLACE TABLE DATA_VAULT.STG.ORDERS_FEED_STG
+(
+  ORDERKEY              NUMBER
+, CUSTKEY               NUMBER  
+, ORDERSTATUS           STRING
+, TOTALPRICE            NUMBER  
+, ORDERDATE             DATE
+, ORDERPRIORITY         STRING
+, CLERK                 STRING
+, SHIPPRIORITY          NUMBER
+, COMMENT               STRING
+, FILENAME                STRING   NOT NULL
+, FILE_ROW_SEQ            NUMBER   NOT NULL
+, LDTS                    STRING   NOT NULL
+, RSCR                    STRING   NOT NULL
+);
+
+CREATE OR REPLACE TABLE DATA_VAULT.STG.NATION_FEED_STG
+(
+  NATIONKEY	NUMBER(38,0)
+, NAME	VARCHAR(25)
+, REGIONKEY NUMBER(38,0)
+, COMMENT VARCHAR(152)
+, FILENAME STRING NOT NULL
+, FILE_ROW_SEQ NUMBER NOT NULL
+, LDTS STRING NOT NULL
+, RSCR STRING NOT NULL
+);
+
+CREATE OR REPLACE TABLE DATA_VAULT.STG.REGION_FEED_STG
+(
+  REGIONKEY	NUMBER(38,0)
+, NAME	VARCHAR(25)
+, COMMENT	VARCHAR(152)
+, FILENAME STRING NOT NULL
+, FILE_ROW_SEQ NUMBER NOT NULL
+, LDTS STRING NOT NULL
+, RSCR STRING NOT NULL
+);
+
+--------------------------------------------------------------------
+-- CREATING STREAMS IN STAGING AREA
+--------------------------------------------------------------------
+CREATE OR REPLACE STREAM DATA_VAULT.STG.STREAM_CUSTOMER_STG ON TABLE DATA_VAULT.STG.CUSTOMER_FEED_STG;
+CREATE OR REPLACE STREAM DATA_VAULT.STG.STREAM_ORDERS_STG ON TABLE DATA_VAULT.STG.ORDERS_FEED_STG;
+CREATE OR REPLACE STREAM DATA_VAULT.STG.STREAM_NATION_STG ON TABLE DATA_VAULT.STG.NATION_FEED_STG;
+CREATE OR REPLACE STREAM DATA_VAULT.STG.STREAM_REGION_STG ON TABLE DATA_VAULT.STG.REGION_FEED_STG;
+
+SELECT * FROM DATA_VAULT.STG.CUSTOMER_FEED_STG;
+
+
+--------------------------------------------------------------------
+-- CREATING STAGE IN STAGING AREA
+--------------------------------------------------------------------
+CREATE OR REPLACE STAGE DATA_VAULT.STG.STAGE_CUSTOMER_STG FILE_FORMAT = (TYPE = JSON);
+CREATE OR REPLACE STAGE DATA_VAULT.STG.STAGE_ORDERS_STG   FILE_FORMAT = (TYPE = CSV) ;
+CREATE OR REPLACE STAGE DATA_VAULT.STG.STAGE_NATION_STG   FILE_FORMAT = (TYPE = CSV) ;
+CREATE OR REPLACE STAGE DATA_VAULT.STG.STAGE_REGION_STG   FILE_FORMAT = (TYPE = CSV) ;
+
+--------------------------------------------------------------------
+-- COPY TO STAGE
+--------------------------------------------------------------------
+
+COPY INTO @DATA_VAULT.STG.STAGE_CUSTOMER_STG 
+FROM
+(SELECT OBJECT_CONSTRUCT(*)
+  FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.CUSTOMER --LIMIT 10
+) 
+INCLUDE_QUERY_ID=TRUE;
+
+COPY INTO @STAGE_ORDERS_STG 
+FROM
+(SELECT *
+  FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.ORDERS --LIMIT 1000
+) 
+INCLUDE_QUERY_ID=TRUE;
+
+COPY INTO @STAGE_NATION_STG 
+FROM
+(SELECT *
+  FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.NATION
+) 
+INCLUDE_QUERY_ID=TRUE;
+
+COPY INTO @STAGE_REGION_STG 
+FROM
+(SELECT *
+  FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.REGION
+) 
+INCLUDE_QUERY_ID=TRUE;
+
+
+--validate that the data is now stored in files:
+
+LIST @STAGE_CUSTOMER_STG;
+SELECT METADATA$FILENAME,$1 FROM @STAGE_CUSTOMER_STG; 
+
+
+-----------------------------------------------------------------------------
+-- SETUP SNOWPIPE TO LOAD DATA FROM FILES IN A STAGE INTO STAGING TABLES
+-----------------------------------------------------------------------------
+
+CREATE OR REPLACE PIPE PIPE_CUSTOMER_STG 
+AS 
+COPY INTO DATA_VAULT.STG.CUSTOMER_FEED_STG
+FROM 
+(
+SELECT $1
+     , METADATA$FILENAME
+     , METADATA$FILE_ROW_NUMBER
+     , CURRENT_TIMESTAMP()
+     , 'Customers System'
+  FROM @DATA_VAULT.STG.STAGE_CUSTOMER_STG
+);
+
+CREATE OR REPLACE PIPE PIPE_ORDERS_STG 
+AS 
+COPY INTO DATA_VAULT.STG.ORDERS_FEED_STG 
+FROM
+(
+SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9 
+     , METADATA$FILENAME
+     , METADATA$FILE_ROW_NUMBER
+     , CURRENT_TIMESTAMP()
+     , 'Orders System'
+  FROM @STAGE_ORDERS_STG
+);
+
+CREATE OR REPLACE PIPE PIPE_NATION_STG 
+AS 
+COPY INTO DATA_VAULT.STG.NATION_FEED_STG 
+FROM
+(
+SELECT $1,$2,$3,$4
+     , METADATA$FILENAME
+     , METADATA$FILE_ROW_NUMBER
+     , CURRENT_TIMESTAMP()
+     , 'Nation Data'
+  FROM @STAGE_NATION_STG
+);
+
+CREATE OR REPLACE PIPE PIPE_REGION_STG 
+AS 
+COPY INTO DATA_VAULT.STG.REGION_FEED_STG 
+FROM
+(
+SELECT $1,$2,$3
+     , METADATA$FILENAME
+     , METADATA$FILE_ROW_NUMBER
+     , CURRENT_TIMESTAMP()
+     , 'Region Data'
+  FROM @STAGE_REGION_STG
+);
+
+ALTER PIPE DATA_VAULT.STG.PIPE_CUSTOMER_STG REFRESH;
+ALTER PIPE DATA_VAULT.STG.PIPE_ORDERS_STG REFRESH;
+ALTER PIPE DATA_VAULT.STG.PIPE_NATION_STG REFRESH;
+ALTER PIPE DATA_VAULT.STG.PIPE_REGION_STG REFRESH;
+
+/*
+ALTER PIPE DATA_VAULT.STG.PIPE_CUSTOMER_STG SET PIPE_EXECUTION_PAUSED = TRUE;
+ALTER PIPE DATA_VAULT.STG.PIPE_ORDERS_STG SET PIPE_EXECUTION_PAUSED = TRUE;
+ALTER PIPE DATA_VAULT.STG.PIPE_NATION_STG SET PIPE_EXECUTION_PAUSED = TRUE;
+ALTER PIPE DATA_VAULT.STG.PIPE_NATION_STG SET PIPE_EXECUTION_PAUSED = TRUE;
+*/
+-- Checking Data using the below Query
+
+
+SELECT 'CUSTOMER_FEED_STG', count(1) FROM DATA_VAULT.STG.CUSTOMER_FEED_STG
+UNION ALL
+SELECT 'STREAM_CUSTOMER_STG', count(1) FROM DATA_VAULT.STG.STREAM_CUSTOMER_STG
+UNION ALL
+SELECT 'ORDERS_FEED_STG', count(1) FROM DATA_VAULT.STG.ORDERS_FEED_STG
+UNION ALL
+SELECT 'STREAM_ORDERS_STG', count(1) FROM DATA_VAULT.STG.STREAM_ORDERS_STG
+UNION ALL
+SELECT 'NATION_FEED_STG', count(1) FROM DATA_VAULT.STG.NATION_FEED_STG
+UNION ALL
+SELECT 'STREAM_NATION_STG', count(1) FROM DATA_VAULT.STG.STREAM_NATION_STG
+UNION ALL
+SELECT 'REGION_FEED_STG', count(1) FROM DATA_VAULT.STG.REGION_FEED_STG
+UNION ALL
+SELECT 'STREAM_REGION_STG', count(1) FROM DATA_VAULT.STG.STREAM_REGION_STG
+;
+
+
+-----------------------------------------------------------------------------
+-- CREATING A OUTBOUND VIEW TO PUSH DATA FROM STAGING TO MAIN
+-----------------------------------------------------------------------------
+
+
+CREATE OR REPLACE VIEW DATA_VAULT.STG.STREAM_CUSTOMER_STG_OUTBOUND AS 
+SELECT SRC.*
+     , RAW_JSON:C_CUSTKEY::NUMBER CUSTKEY
+     , RAW_JSON:C_NAME::STRING NAME
+     , RAW_JSON:C_ADDRESS::STRING ADDRESS
+     , RAW_JSON:C_NATIONKEY::NUMBER NATIONCODE
+     , RAW_JSON:C_PHONE::STRING PHONE
+     , RAW_JSON:C_ACCTBAL::NUMBER ACCTBAL
+     , RAW_JSON:C_MKTSEGMENT::STRING MKTSEGMENT
+     , RAW_JSON:C_COMMENT::STRING COMMENT     
+--------------------------------------------------------------------
+-- DERIVED BUSINESS KEY
+--------------------------------------------------------------------
+     , SHA1_BINARY(UPPER(TRIM(CUSTKEY)))  SHA1_HUB_CUSTOMER     
+     , SHA1_BINARY(UPPER(ARRAY_TO_STRING(ARRAY_CONSTRUCT( 
+                                              NVL(TRIM(NAME)       ,'-1')
+                                            , NVL(TRIM(ADDRESS)    ,'-1')              
+                                            , NVL(TRIM(NATIONCODE) ,'-1')                 
+                                            , NVL(TRIM(PHONE)      ,'-1')            
+                                            , NVL(TRIM(ACCTBAL)    ,'-1')               
+                                            , NVL(TRIM(MKTSEGMENT) ,'-1')                 
+                                            , NVL(TRIM(COMMENT)    ,'-1')               
+                                            ), '^')))  AS CUSTOMER_HASH_DIFF
+FROM DATA_VAULT.STG.STREAM_CUSTOMER_STG SRC;
+
+
+
+CREATE OR REPLACE VIEW DATA_VAULT.STG.STREAM_ORDERS_STG_OUTBOUND AS 
+SELECT SRC.*
+--------------------------------------------------------------------
+-- DERIVED BUSINESS KEY
+--------------------------------------------------------------------
+     , SHA1_BINARY(UPPER(TRIM(ORDERKEY)))             SHA1_HUB_ORDER
+     , SHA1_BINARY(UPPER(TRIM(CUSTKEY)))              SHA1_HUB_CUSTOMER  
+     , SHA1_BINARY(UPPER(ARRAY_TO_STRING(ARRAY_CONSTRUCT( NVL(TRIM(ORDERKEY)       ,'-1')
+                                                        , NVL(TRIM(CUSTKEY)        ,'-1')
+                                                        ), '^')))  AS SHA1_LNK_CUSTOMER_ORDER             
+     , SHA1_BINARY(UPPER(ARRAY_TO_STRING(ARRAY_CONSTRUCT( NVL(TRIM(ORDERSTATUS)    , '-1')         
+                                                        , NVL(TRIM(TOTALPRICE)     , '-1')        
+                                                        , NVL(TRIM(ORDERDATE)      , '-1')       
+                                                        , NVL(TRIM(ORDERPRIORITY)  , '-1')           
+                                                        , NVL(TRIM(CLERK)          , '-1')    
+                                                        , NVL(TRIM(SHIPPRIORITY)   , '-1')          
+                                                        , NVL(TRIM(COMMENT)        , '-1')      
+                                                        ), '^')))  AS ORDER_HASH_DIFF     
+  FROM DATA_VAULT.STG.STREAM_ORDERS_STG SRC
+;
+
+--We build our staging/inbound pipeline, ready to accomodate streaming data and derived business keys 
+--that we are going to use in our Raw Data Vault. Let's move on to the next step!
+
+
+/************************************************************************************************************************************************
+BUILDING RAW DATA VAULT
+************************************************************************************************************************************************/
+
+--------------------------------------------------------------------
+-- SETTING UP RDV  -- Raw Data Vault
+--------------------------------------------------------------------
+
+USE SCHEMA RDV;
+
+/************* CREATING HUBS *********************************************************/
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.HUB_CUSTOMER 
+( 
+  SHA1_HUB_CUSTOMER       BINARY    NOT NULL   
+, CUSTKEY                 NUMBER    NOT NULL                                                                                 
+, LDTS                    TIMESTAMP NOT NULL
+, RSCR                    STRING    NOT NULL
+, CONSTRAINT PK_HUB_CUSTOMER        PRIMARY KEY(SHA1_HUB_CUSTOMER)
+);                              
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.HUB_ORDERS 
+( 
+  SHA1_HUB_ORDER          BINARY    NOT NULL   
+, ORDERKEY                NUMBER    NOT NULL                                                                                 
+, LDTS                    TIMESTAMP NOT NULL
+, RSCR                    STRING    NOT NULL
+, CONSTRAINT PK_HUB_ORDER           PRIMARY KEY(SHA1_HUB_ORDER)
+);                                     
+
+/************* CREARTING SATELLITES ***************************************************/
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.SAT_CUSTOMER 
+( 
+  SHA1_HUB_CUSTOMER    BINARY    NOT NULL   
+, LDTS                 TIMESTAMP NOT NULL
+, NAME                 STRING
+, ADDRESS              STRING
+, PHONE                STRING 
+, ACCTBAL              NUMBER
+, MKTSEGMENT           STRING    
+, COMMENT              STRING
+, NATIONCODE           NUMBER
+, HASH_DIFF            BINARY    NOT NULL
+, RSCR                 STRING    NOT NULL  
+, CONSTRAINT PK_SAT_CUSTOMER       PRIMARY KEY(SHA1_HUB_CUSTOMER, LDTS)
+, CONSTRAINT FK_SAT_CUSTOMER       FOREIGN KEY(SHA1_HUB_CUSTOMER) REFERENCES DATA_VAULT.RDV.HUB_CUSTOMER
+);                                     
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.SAT_ORDERS 
+( 
+  SHA1_HUB_ORDER       BINARY    NOT NULL   
+, LDTS                 TIMESTAMP NOT NULL
+, ORDERSTATUS          STRING   
+, TOTALPRICE           NUMBER
+, ORDERDATE            DATE
+, ORDERPRIORITY        STRING
+, CLERK                STRING    
+, SHIPPRIORITY         NUMBER
+, COMMENT              STRING
+, HASH_DIFF            BINARY    NOT NULL
+, RSCR                 STRING    NOT NULL   
+, CONSTRAINT PK_SAT_ORDER PRIMARY KEY(SHA1_HUB_ORDER, LDTS)
+, CONSTRAINT FK_SAT_ORDER FOREIGN KEY(SHA1_HUB_ORDER) REFERENCES DATA_VAULT.RDV.HUB_ORDERS
+);   
+
+/************* CREARTING LINKS ***************************************************/
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.LNK_CUSTOMER_ORDERS
+(
+  SHA1_LNK_CUSTOMER_ORDER BINARY     NOT NULL   
+, SHA1_HUB_CUSTOMER       BINARY 
+, SHA1_HUB_ORDER          BINARY 
+, LDTS                    TIMESTAMP  NOT NULL
+, RSCR                    STRING     NOT NULL  
+, CONSTRAINT PK_LNK_CUSTOMER_ORDER  PRIMARY KEY(SHA1_LNK_CUSTOMER_ORDER)
+, CONSTRAINT FK1_LNK_CUSTOMER_ORDER FOREIGN KEY(SHA1_HUB_CUSTOMER) REFERENCES DATA_VAULT.RDV.HUB_CUSTOMER
+, CONSTRAINT FK2_LNK_CUSTOMER_ORDER FOREIGN KEY(SHA1_HUB_ORDER)    REFERENCES DATA_VAULT.RDV.HUB_ORDERS
+);
+
+/****************** REFERENCE DATA MAIN TABLES ******************/
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.REGION
+( 
+  REGIONCODE          NUMBER 
+, LDTS                TIMESTAMP
+, RSCR                STRING NOT NULL
+, NAME                STRING
+, COMMENT             STRING
+, CONSTRAINT PK_REF_REGION PRIMARY KEY (REGIONCODE)                                                                             
+);
+
+CREATE OR REPLACE TABLE DATA_VAULT.RDV.NATION 
+( 
+  NATIONCODE          NUMBER 
+, REGIONCODE          NUMBER 
+, LDTS                TIMESTAMP
+, RSCR                STRING NOT NULL
+, NAME                STRING
+, COMMENT             STRING
+, CONSTRAINT PK_REF_NATION PRIMARY KEY (NATIONCODE)                                                                             
+, CONSTRAINT FK_REF_REGION FOREIGN KEY (REGIONCODE) REFERENCES DATA_VAULT.RDV.REGION(REGIONCODE)  
+);
+
+
+/************************************************************************************************************************************
+MOVING DATA FROM STREAM TO MAIN USING TASK
+*************************************************************************************************************************************/
+
+CREATE OR REPLACE TASK TASK_CUSTOMER
+  WAREHOUSE = COMPUTE_WH
+  SCHEDULE = '1 MINUTE'
+WHEN
+  SYSTEM$STREAM_HAS_DATA('DATA_VAULT.STG.STREAM_CUSTOMER_STG')
+AS 
+INSERT ALL
+WHEN (SELECT COUNT(1) FROM DATA_VAULT.RDV.HUB_CUSTOMER TGT WHERE TGT.SHA1_HUB_CUSTOMER = SRC_SHA1_HUB_CUSTOMER) = 0
+THEN INTO DATA_VAULT.RDV.HUB_CUSTOMER  
+( SHA1_HUB_CUSTOMER
+, CUSTKEY
+, LDTS
+, RSCR
+)  
+VALUES 
+( SRC_SHA1_HUB_CUSTOMER
+, SRC_CUSTKEY
+, SRC_LDTS
+, SRC_RSCR
+)  
+WHEN (SELECT COUNT(1) FROM DATA_VAULT.RDV.SAT_CUSTOMER TGT WHERE TGT.SHA1_HUB_CUSTOMER = SRC_SHA1_HUB_CUSTOMER AND TGT.HASH_DIFF = SRC_CUSTOMER_HASH_DIFF) = 0
+THEN INTO DATA_VAULT.RDV.SAT_CUSTOMER  
+(
+  SHA1_HUB_CUSTOMER  
+, LDTS              
+, NAME            
+, ADDRESS         
+, PHONE           
+, ACCTBAL         
+, MKTSEGMENT      
+, COMMENT         
+, NATIONCODE        
+, HASH_DIFF         
+, RSCR              
+)  
+VALUES 
+(
+  SRC_SHA1_HUB_CUSTOMER  
+, SRC_LDTS              
+, SRC_NAME            
+, SRC_ADDRESS         
+, SRC_PHONE           
+, SRC_ACCTBAL         
+, SRC_MKTSEGMENT      
+, SRC_COMMENT         
+, SRC_NATIONCODE        
+, SRC_CUSTOMER_HASH_DIFF         
+, SRC_RSCR              
+)
+SELECT SHA1_HUB_CUSTOMER SRC_SHA1_HUB_CUSTOMER
+     , CUSTKEY           SRC_CUSTKEY
+     , NAME              SRC_NAME
+     , ADDRESS           SRC_ADDRESS
+     , NATIONCODE        SRC_NATIONCODE
+     , PHONE             SRC_PHONE
+     , ACCTBAL           SRC_ACCTBAL
+     , MKTSEGMENT        SRC_MKTSEGMENT
+     , COMMENT           SRC_COMMENT    
+     , CUSTOMER_HASH_DIFF  SRC_CUSTOMER_HASH_DIFF
+     , LDTS                SRC_LDTS
+     , RSCR                SRC_RSCR
+  FROM DATA_VAULT.STG.STREAM_CUSTOMER_STG_OUTBOUND SRC
+;
+
+
+CREATE OR REPLACE TASK TASK_ORDERS
+  WAREHOUSE = COMPUTE_WH
+  SCHEDULE = '1 MINUTE'
+WHEN
+  SYSTEM$STREAM_HAS_DATA('DATA_VAULT.STG.STREAM_ORDERS_STG')
+AS 
+INSERT ALL
+WHEN (SELECT COUNT(1) FROM DATA_VAULT.RDV.HUB_ORDERS TGT WHERE TGT.SHA1_HUB_ORDER = SRC_SHA1_HUB_ORDER) = 0
+THEN INTO DATA_VAULT.RDV.HUB_ORDERS  
+( SHA1_HUB_ORDER
+, ORDERKEY
+, LDTS
+, RSCR
+)  
+VALUES 
+( SRC_SHA1_HUB_ORDER
+, SRC_ORDERKEY
+, SRC_LDTS
+, SRC_RSCR
+)  
+WHEN (SELECT COUNT(1) FROM DATA_VAULT.RDV.SAT_ORDERS TGT WHERE TGT.SHA1_HUB_ORDER = SRC_SHA1_HUB_ORDER AND TGT.HASH_DIFF = SRC_ORDER_HASH_DIFF) = 0
+THEN INTO DATA_VAULT.RDV.SAT_ORDERS  
+(
+  SHA1_HUB_ORDER  
+, LDTS              
+, ORDERSTATUS  
+, TOTALPRICE   
+, ORDERDATE    
+, ORDERPRIORITY
+, CLERK        
+, SHIPPRIORITY 
+, COMMENT              
+, HASH_DIFF         
+, RSCR              
+)  
+VALUES 
+(
+  SRC_SHA1_HUB_ORDER  
+, SRC_LDTS              
+, SRC_ORDERSTATUS  
+, SRC_TOTALPRICE   
+, SRC_ORDERDATE    
+, SRC_ORDERPRIORITY
+, SRC_CLERK        
+, SRC_SHIPPRIORITY 
+, SRC_COMMENT      
+, SRC_ORDER_HASH_DIFF         
+, SRC_RSCR              
+)
+WHEN (SELECT COUNT(1) FROM DATA_VAULT.RDV.LNK_CUSTOMER_ORDERS TGT WHERE TGT.SHA1_LNK_CUSTOMER_ORDER = SRC_SHA1_LNK_CUSTOMER_ORDER) = 0
+THEN INTO DATA_VAULT.RDV.LNK_CUSTOMER_ORDERS  
+(
+  SHA1_LNK_CUSTOMER_ORDER  
+, SHA1_HUB_CUSTOMER              
+, SHA1_HUB_ORDER  
+, LDTS
+, RSCR              
+)  
+VALUES 
+(
+  SRC_SHA1_LNK_CUSTOMER_ORDER
+, SRC_SHA1_HUB_CUSTOMER
+, SRC_SHA1_HUB_ORDER  
+, SRC_LDTS              
+, SRC_RSCR              
+)
+SELECT SHA1_HUB_ORDER          SRC_SHA1_HUB_ORDER
+     , SHA1_LNK_CUSTOMER_ORDER SRC_SHA1_LNK_CUSTOMER_ORDER
+     , SHA1_HUB_CUSTOMER       SRC_SHA1_HUB_CUSTOMER
+     , ORDERKEY                SRC_ORDERKEY
+     , ORDERSTATUS             SRC_ORDERSTATUS  
+     , TOTALPRICE              SRC_TOTALPRICE   
+     , ORDERDATE               SRC_ORDERDATE    
+     , ORDERPRIORITY           SRC_ORDERPRIORITY
+     , CLERK                   SRC_CLERK        
+     , SHIPPRIORITY            SRC_SHIPPRIORITY 
+     , COMMENT                 SRC_COMMENT      
+     , ORDER_HASH_DIFF         SRC_ORDER_HASH_DIFF
+     , LDTS                    SRC_LDTS
+     , RSCR                    SRC_RSCR
+  FROM DATA_VAULT.STG.STREAM_ORDERS_STG_OUTBOUND SRC;    
+
+
+CREATE OR REPLACE TASK TASK_REGION
+WAREHOUSE = COMPUTE_WH
+SCHEDULE = '1 MINUTE'
+WHEN SYSTEM$STREAM_HAS_DATA('DATA_VAULT.STG.STREAM_REGION_STG')
+AS 
+MERGE INTO DATA_VAULT.RDV.REGION F      -- Target table to merge changes from source table
+USING ( SELECT STRE.*
+        FROM DATA_VAULT.STG.STREAM_REGION_STG STRE INNER JOIN DATA_VAULT.STG.REGION_FEED_STG STG ON STRE.REGIONKEY = STG.REGIONKEY 
+       ) S
+ON F.REGIONCODE=S.REGIONKEY
+WHEN MATCHED                        -- DELETE condition
+    AND S.METADATA$ACTION ='DELETE' 
+    AND S.METADATA$ISUPDATE = 'FALSE'
+    THEN DELETE                   
+WHEN MATCHED                        -- UPDATE condition
+    AND S.METADATA$ACTION ='INSERT' 
+    AND S.METADATA$ISUPDATE  = 'TRUE'       
+    THEN UPDATE 
+    SET F.LDTS=S.LDTS
+		,F.RSCR=S.RSCR
+        ,F.NAME=S.NAME
+        ,F.COMMENT=S.COMMENT
+WHEN NOT MATCHED 
+    AND S.METADATA$ACTION ='INSERT'
+	AND S.METADATA$ISUPDATE  = 'FALSE'
+    THEN INSERT 
+    (REGIONCODE, LDTS, RSCR, NAME, COMMENT)
+    values
+    (S.REGIONKEY,S.LDTS,S.RSCR,S.NAME,S.COMMENT);
+
+CREATE OR REPLACE TASK TASK_NATION
+WAREHOUSE = COMPUTE_WH
+SCHEDULE = '1 MINUTE'
+WHEN SYSTEM$STREAM_HAS_DATA('DATA_VAULT.STG.STREAM_NATION_STG')
+AS 
+MERGE INTO DATA_VAULT.RDV.NATION F      -- Target table to merge changes from source table
+USING ( SELECT STRE.*
+        FROM DATA_VAULT.STG.STREAM_NATION_STG STRE INNER JOIN DATA_VAULT.STG.NATION_FEED_STG STG ON STRE.NATIONKEY = STG.NATIONKEY 
+       ) S
+ON F.NATIONCODE=S.NATIONKEY
+WHEN MATCHED                        -- DELETE condition
+    AND S.METADATA$ACTION ='DELETE' 
+    AND S.METADATA$ISUPDATE = 'FALSE'
+    THEN DELETE                   
+WHEN MATCHED                        -- UPDATE condition
+    AND S.METADATA$ACTION ='INSERT' 
+    AND S.METADATA$ISUPDATE  = 'TRUE'       
+    THEN UPDATE 
+    SET  F.REGIONCODE=S.REGIONKEY
+		,F.LDTS=S.LDTS
+		,F.RSCR=S.RSCR
+        ,F.NAME=S.NAME
+        ,F.COMMENT=S.COMMENT
+WHEN NOT MATCHED 
+    AND S.METADATA$ACTION ='INSERT'
+	AND S.METADATA$ISUPDATE  = 'FALSE'
+    THEN INSERT 
+    (NATIONCODE,REGIONCODE, LDTS, RSCR, NAME, COMMENT)
+    values
+    (S.NATIONKEY,S.REGIONKEY,S.LDTS,S.RSCR,S.NAME,S.COMMENT);
+
+
+ALTER TASK DATA_VAULT.RDV.TASK_CUSTOMER RESUME;  
+ALTER TASK DATA_VAULT.RDV.TASK_ORDERS RESUME;  
+ALTER TASK DATA_VAULT.RDV.TASK_REGION RESUME; 
+ALTER TASK DATA_VAULT.RDV.TASK_NATION RESUME; 
+--To check Task History
+/*
+ALTER TASK DATA_VAULT.RDV.TASK_CUSTOMER SUSPEND;  
+ALTER TASK DATA_VAULT.RDV.TASK_ORDERS SUSPEND;  
+ALTER TASK DATA_VAULT.RDV.TASK_REGION SUSPEND; 
+ALTER TASK DATA_VAULT.RDV.TASK_NATION SUSPEND; 
+
+
+SELECT *
+  FROM table(information_schema.task_history())
+  ORDER BY scheduled_time DESC;
+  
+*/
+--To Check the Process results
+
+SELECT 'HUB_CUSTOMER', COUNT(1) FROM DATA_VAULT.RDV.HUB_CUSTOMER
+UNION ALL
+SELECT 'HUB_ORDERS', COUNT(1) FROM DATA_VAULT.RDV.HUB_ORDERS
+UNION ALL
+SELECT 'SAT_CUSTOMER', COUNT(1) FROM DATA_VAULT.RDV.SAT_CUSTOMER
+UNION ALL
+SELECT 'SAT_ORDERS', COUNT(1) FROM DATA_VAULT.RDV.SAT_ORDERS
+UNION ALL
+SELECT 'LNK_CUSTOMER_ORDERS', COUNT(1) FROM DATA_VAULT.RDV.LNK_CUSTOMER_ORDERS
+UNION ALL
+SELECT 'REGION', COUNT(1) FROM DATA_VAULT.RDV.REGION
+UNION ALL
+SELECT 'NATION', COUNT(1) FROM DATA_VAULT.RDV.NATION
+UNION ALL
+SELECT 'STREAM_CUSTOMER_STG_OUTBOUND', COUNT(1) FROM DATA_VAULT.STG.STREAM_CUSTOMER_STG_OUTBOUND
+UNION ALL
+SELECT 'STREAM_ORDERS_STG_OUTBOUND', COUNT(1) FROM DATA_VAULT.STG.STREAM_ORDERS_STG_OUTBOUND
+UNION ALL
+SELECT 'STREAM_REGION_STG', COUNT(1) FROM DATA_VAULT.STG.STREAM_REGION_STG
+UNION ALL
+SELECT 'STREAM_NATION_STG', COUNT(1) FROM DATA_VAULT.STG.STREAM_NATION_STG;  
+
+
+
+
+
+/**********************************************************************************************************************************************
+BUILDING BUSINESS DATA VAULT
+***********************************************************************************************************************************************/
+
+USE SCHEMA BDV;
+
+/*********************************************************************
+CREATING FINAL BUSINESS VIEWS & TABLES FOR BUSINESS CONSUMPTION
+*********************************************************************/
+
+CREATE OR REPLACE VIEW DATA_VAULT.BDV.SAT_CUSTOMER_BV
+AS
+SELECT RSC.SHA1_HUB_CUSTOMER  
+     , RSC.LDTS                   
+     , RSC.NAME                 
+     , RSC.ADDRESS              
+     , RSC.PHONE                 
+     , RSC.ACCTBAL              
+     , RSC.MKTSEGMENT               
+     , RSC.COMMENT              
+     , RSC.NATIONCODE             
+     , RSC.RSCR 
+     -- DERIVED 
+     , RRN.NAME  NATION_NAME
+     , RRR.NAME  REGION_NAME
+  FROM DATA_VAULT.RDV.SAT_CUSTOMER          RSC
+  LEFT OUTER JOIN DATA_VAULT.RDV.NATION RRN
+    ON (RSC.NATIONCODE = RRN.NATIONCODE)
+  LEFT OUTER JOIN DATA_VAULT.RDV.REGION RRR
+    ON (RRN.REGIONCODE = RRR.REGIONCODE);
+
+
+CREATE OR REPLACE TABLE DATA_VAULT.BDV.SAT_ORDERS_BV
+( 
+  SHA1_HUB_ORDER       BINARY    NOT NULL   
+, LDTS                 TIMESTAMP NOT NULL
+, ORDERSTATUS          STRING   
+, TOTALPRICE           NUMBER
+, ORDERDATE            DATE
+, ORDERPRIORITY        STRING
+, CLERK                STRING    
+, SHIPPRIORITY         NUMBER
+, COMMENT              STRING  
+, HASH_DIFF            BINARY    NOT NULL
+, RSCR                 STRING    NOT NULL   
+-- ADDITIONAL ATTRIBUTES
+, ORDER_PRIORITY_BUCKET  STRING
+, CONSTRAINT PK_SAT_ORDER PRIMARY KEY(SHA1_HUB_ORDER, LDTS)
+, CONSTRAINT FK_SAT_ORDER FOREIGN KEY(SHA1_HUB_ORDER) REFERENCES DATA_VAULT.RDV.HUB_ORDERS
+)
+AS 
+SELECT SHA1_HUB_ORDER 
+     , LDTS           
+     , ORDERSTATUS  
+     , TOTALPRICE   
+     , ORDERDATE    
+     , ORDERPRIORITY
+     , CLERK        
+     , SHIPPRIORITY 
+     , COMMENT      
+     , HASH_DIFF      
+     , RSCR 
+     -- DERIVED ADDITIONAL ATTRIBUTES
+     , CASE WHEN ORDERPRIORITY IN ('2-HIGH', '1-URGENT')             AND TOTALPRICE >= 200000 THEN 'TIER-1'
+            WHEN ORDERPRIORITY IN ('3-MEDIUM', '2-HIGH', '1-URGENT') AND TOTALPRICE BETWEEN 150000 AND 200000 THEN 'TIER-2'  
+            ELSE 'TIER-3'
+       END ORDER_PRIORITY_BUCKET
+FROM DATA_VAULT.RDV.SAT_ORDERS;
+
+/********************************************************************************************
+Creating A New Stream to extend our Orders Process pipeline
+********************************************************************************************/
+USE SCHEMA RDV;
+
+CREATE OR REPLACE STREAM DATA_VAULT.RDV.STREAM_SAT_ORDERS ON TABLE DATA_VAULT.RDV.SAT_ORDERS; 
+
+ALTER TASK DATA_VAULT.RDV.TASK_ORDERS SUSPEND;
+
+CREATE OR REPLACE TASK DATA_VAULT.RDV.TASK_HUB_ORDERS_SAT_ORDERS_BV
+  WAREHOUSE = COMPUTE_WH
+  AFTER DATA_VAULT.RDV.TASK_ORDERS
+AS 
+INSERT INTO DATA_VAULT.BDV.SAT_ORDERS_BV
+SELECT   
+  SHA1_HUB_ORDER 
+, LDTS           
+, ORDERSTATUS  
+, TOTALPRICE   
+, ORDERDATE    
+, ORDERPRIORITY
+, CLERK        
+, SHIPPRIORITY 
+, COMMENT      
+, HASH_DIFF      
+, RSCR 
+-- DERIVED ADDITIONAL ATTRIBUTES
+, CASE WHEN ORDERPRIORITY IN ('2-HIGH', '1-URGENT')             AND TOTALPRICE >= 200000 THEN 'Tier-1'
+       WHEN ORDERPRIORITY IN ('3-MEDIUM', '2-HIGH', '1-URGENT') AND TOTALPRICE BETWEEN 150000 AND 200000 THEN 'Tier-2'  
+       ELSE 'Tier-3'
+  END ORDER_PRIORITY_BUCKET
+FROM DATA_VAULT.RDV.STREAM_SAT_ORDERS;
+
+ALTER TASK DATA_VAULT.RDV.TASK_HUB_ORDERS_SAT_ORDERS_BV RESUME;
+ALTER TASK DATA_VAULT.RDV.TASK_ORDERS RESUME;
+
+
+-- ALTER TASK DATA_VAULT.RDV.TASK_HUB_ORDERS_SAT_ORDERS_BV SUSPEND;
+-- ALTER TASK DATA_VAULT.RDV.TASK_ORDERS SUSPEND;
+
+/********************************************************************************
+ADDING MORE RECORDS IN TO ORDERS
+*********************************************************************************
+
+USE SCHEMA STG;
+
+COPY INTO @STAGE_ORDERS_STG 
+FROM
+(SELECT *
+  FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.ORDERS LIMIT 1000
+) 
+INCLUDE_QUERY_ID=TRUE;
+
+ALTER PIPE DATA_VAULT.STG.PIPE_ORDERS_STG REFRESH;
+
+SELECT 'TASK DATA_VAULT.STG.ORDERS_FEED_STG', COUNT(1) FROM TASK DATA_VAULT.STG.ORDERS_FEED_STG
+UNION ALL
+SELECT 'TASK DATA_VAULT.STG.STREAM_ORDERS_STG', COUNT(1) FROM TASK DATA_VAULT.STG.STREAM_ORDERS_STG
+UNION ALL
+SELECT 'TASK DATA_VAULT.RDV.SAT_ORDERS', COUNT(1) FROM TASK DATA_VAULT.RDV.SAT_ORDERS
+UNION ALL
+SELECT 'DATA_VAULT.RDV.STREAM_SAT_ORDERS', COUNT(1) FROM DATA_VAULT.RDV.STREAM_SAT_ORDERS
+UNION ALL
+SELECT 'DATA_VAULT.BDV.SAT_ORDERS_BV', COUNT(1) FROM DATA_VAULT.BDV.SAT_ORDERS_BV;
+
+*/
+--------------------------------------------------------------------
+-- RDV curr views
+--------------------------------------------------------------------
+
+USE SCHEMA RDV;
+
+CREATE OR REPLACE VIEW DATA_VAULT.RDV.SAT_CUSTOMER_CURR_VW
+AS
+SELECT *
+FROM DATA_VAULT.RDV.SAT_CUSTOMER
+QUALIFY LEAD(LDTS) OVER (PARTITION BY SHA1_HUB_CUSTOMER ORDER BY LDTS) IS NULL;
+
+CREATE OR REPLACE VIEW DATA_VAULT.RDV.SAT_ORDERS_CURR_VW
+AS
+SELECT  *
+FROM DATA_VAULT.RDV.SAT_ORDERS
+QUALIFY LEAD(LDTS) OVER (PARTITION BY SHA1_HUB_ORDER ORDER BY LDTS) IS NULL;
+
+--------------------------------------------------------------------
+-- BDV curr views
+--------------------------------------------------------------------
+
+USE SCHEMA BDV;
+
+CREATE OR REPLACE VIEW DATA_VAULT.BDV.SAT_CUSTOMER_BV_CURR_VW
+AS
+SELECT *
+FROM DATA_VAULT.BDV.SAT_CUSTOMER_BV
+QUALIFY LEAD(LDTS) OVER (PARTITION BY SHA1_HUB_CUSTOMER ORDER BY LDTS) IS NULL;
+
+CREATE OR REPLACE VIEW DATA_VAULT.BDV.SAT_ORDERS_BV_CURR_VW
+AS
+SELECT *
+FROM DATA_VAULT.BDV.SAT_ORDERS_BV
+QUALIFY LEAD(LDTS) OVER (PARTITION BY SHA1_HUB_ORDER ORDER BY LDTS) IS NULL;
+
+
+/*********************************************************************************************************************************
+Now finall we create informational views, which later will be ready for Reporting
+**********************************************************************************************************************************/
+
+USE SCHEMA REPO;
+
+-- DIM TABLE
+CREATE OR REPLACE VIEW DATA_VAULT.REPO.DIM_CUSTOMER 
+AS 
+SELECT HUB.SHA1_HUB_CUSTOMER AS DIM_CUSTOMER_KEY
+     , SAT.LDTS              AS EFFECTIVE_DTS
+     , HUB.CUSTKEY           AS CUSTOMER_ID
+     , SAT.RSCR              AS RECORD_SOURCE
+     , SAT.*     
+  FROM DATA_VAULT.RDV.HUB_CUSTOMER HUB
+     , DATA_VAULT.BDV.SAT_CUSTOMER_BV_CURR_VW SAT
+ WHERE HUB.SHA1_HUB_CUSTOMER = SAT.SHA1_HUB_CUSTOMER;
+
+-- FACT TABLE
+CREATE OR REPLACE VIEW DATA_VAULT.REPO.FACT_ORDERS
+AS 
+SELECT HUB.SHA1_HUB_ORDER AS DIM_ORDER_KEY
+     , LNK.SHA1_HUB_CUSTOMER AS DIM_CUSTOMER_KEY
+     , SAT.LDTS           AS EFFECTIVE_DTS
+     , HUB.ORDERKEY       AS ORDER_ID
+     , SAT.RSCR           AS RECORD_SOURCE
+     , SAT.*
+  FROM DATA_VAULT.RDV.HUB_ORDERS HUB
+     , DATA_VAULT.BDV.SAT_ORDERS_BV_CURR_VW SAT
+	 , DATA_VAULT.RDV.LNK_CUSTOMER_ORDERS LNK
+ WHERE HUB.SHA1_HUB_ORDER = SAT.SHA1_HUB_ORDER
+	AND HUB.SHA1_HUB_ORDER = LNK.SHA1_HUB_ORDER;
+  
+  
+--Reporting
+--============================================  
+SELECT DC.REGION_NAME
+	 , DC.NATION_NAME
+     , FCT.ORDER_PRIORITY_BUCKET
+     , COUNT(1) CNT_ORDERS
+	 , SUM(TOTALPRICE) TOTALPRICE
+  FROM DATA_VAULT.REPO.FACT_ORDERS FCT
+     , DATA_VAULT.REPO.DIM_CUSTOMER DC
+ WHERE FCT.DIM_CUSTOMER_KEY = DC.DIM_CUSTOMER_KEY
+GROUP BY 
+	   DC.NATION_NAME
+     , DC.REGION_NAME
+     , FCT.ORDER_PRIORITY_BUCKET
+ORDER BY 1,2,3;  
+
+
+
+
+import org.apache.spark.sql.functions._
+df.groupBy("REGION_NAME","NATION_NAME","ORDER_PRIORITY_BUCKET")
+    .agg(
+      count().as("CNT_ORDERS"),
+      sum("TOTALPRICE").as("TOTALPRICE"))
+    .show(false)

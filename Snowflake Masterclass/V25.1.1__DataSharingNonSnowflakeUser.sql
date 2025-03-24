@@ -1,0 +1,53 @@
+-- Provider Account (Accountadmin role) >>>>> Reader Account
+    -- Storage and Compute resources are managed from snowflake
+
+
+SHOW VARIABLES LIKE 'validate_password%';
+
+-- Create Reader Account --
+CREATE MANAGED ACCOUNT tech_joy_account
+ADMIN_NAME = tech_joy_admin,
+ADMIN_PASSWORD = '5843FgfdGr91125',
+TYPE = READER;
+
+// Make sure to have selected the role of accountadmin
+
+// Show accounts
+SHOW MANAGED ACCOUNTS;
+
+-- DROP MANAGED ACCOUNT tech_joy_account;
+
+-- Share the data -- 
+ALTER SHARE ORDERS_SHARE 
+ADD ACCOUNT = XB77340;
+
+ALTER SHARE ORDERS_SHARE 
+ADD ACCOUNT =  <reader-account-id>
+SHARE_RESTRICTIONS=false;
+
+
+SHOW SHARES;
+
+// Create share object
+CREATE OR REPLACE SHARE COMEPLETE_SCHEMA_SHARE;
+
+// Grant usage on dabase & schema
+GRANT USAGE ON DATABASE OUR_FIRST_DB TO SHARE COMEPLETE_SCHEMA_SHARE;
+GRANT USAGE ON SCHEMA OUR_FIRST_DB.PUBLIC TO SHARE COMEPLETE_SCHEMA_SHARE;
+
+// Grant select on all tables
+GRANT SELECT ON ALL TABLES IN SCHEMA OUR_FIRST_DB.PUBLIC TO SHARE COMEPLETE_SCHEMA_SHARE;
+GRANT SELECT ON ALL TABLES IN DATABASE OUR_FIRST_DB TO SHARE COMEPLETE_SCHEMA_SHARE;
+
+// Add account to share
+ALTER SHARE COMEPLETE_SCHEMA_SHARE
+ADD ACCOUNT=XB77340;
+
+
+
+// Updating data
+UPDATE OUR_FIRST_DB.PUBLIC.ORDERS
+SET PROFIT=0 WHERE PROFIT < 0;
+
+// Add new table
+CREATE TABLE OUR_FIRST_DB.PUBLIC.NEW_TABLE (ID int);
