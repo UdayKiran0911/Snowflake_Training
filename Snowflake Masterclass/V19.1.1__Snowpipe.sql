@@ -1,7 +1,8 @@
 // Create table first
-CREATE DATABASE IF NOT EXISTS OUR_FIRST_DB;
+CREATE OR REPLACE DATABASE OUR_FIRST_DB;
 CREATE DATABASE IF NOT EXISTS MANAGE_DB;
 CREATE OR REPLACE SCHEMA MANAGE_DB.external_stages;
+CREATE OR REPLACE SCHEMA MANAGE_DB.file_formats;
 
 CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.employees (
   id INT,
@@ -11,7 +12,16 @@ CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.employees (
   location STRING,
   department STRING
   );
-    
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.employees2 (
+  id INT,
+  first_name STRING,
+  last_name STRING,
+  email STRING,
+  location STRING,
+  department STRING
+  );
+
 
 // Create file format object
 CREATE OR REPLACE file format MANAGE_DB.file_formats.csv_fileformat
@@ -43,16 +53,12 @@ CREATE OR REPLACE pipe MANAGE_DB.pipes.employee_pipe
 auto_ingest = TRUE
 AS
 COPY INTO OUR_FIRST_DB.PUBLIC.employees
-FROM @MANAGE_DB.external_stages.csv_folder ;
+FROM @MANAGE_DB.external_stages.csv_folder;
 
 // Describe pipe
-DESC pipe employee_pipe;
+DESC pipe MANAGE_DB.pipes.employee_pipe;
     
-SELECT COUNT(*) FROM OUR_FIRST_DB.PUBLIC.employees ;
-
-
-
-
+SELECT COUNT(*) FROM OUR_FIRST_DB.PUBLIC.employees;
 
 // MANGING ERRORs
 CREATE OR REPLACE file format MANAGE_DB.file_formats.csv_fileformat
@@ -111,6 +117,7 @@ FROM @MANAGE_DB.external_stages.csv_folder;
 
 // Resume pipe
 ALTER PIPE MANAGE_DB.pipes.employee_pipe SET PIPE_EXECUTION_PAUSED = false;
+ALTER PIPE MANAGE_DB.pipes.employee_pipe SET PIPE_EXECUTION_PAUSED = true;
 
 // Verify pipe is running again
-SELECT SYSTEM$PIPE_STATUS('MANAGE_DB.pipes.employee_pipe') ;
+SELECT SYSTEM$PIPE_STATUS('MANAGE_DB.pipes.employee_pipe');
